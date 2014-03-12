@@ -10,27 +10,43 @@
 
 @implementation ViewController
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     NSLog(@"viewDidLoad");
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
     
-    // Create subviews
-    self.scrollView=[[UIScrollView alloc] initWithFrame:self.view.frame];
-    self.image = [UIImage imageNamed:@"matterhorn"];
+    // Set background to not annoy the hell out of us
+    self.view.backgroundColor = [UIColor blackColor];
+    
+    // Create the scroll view and the image view.
+    self.scrollView  = [[UIScrollView alloc] init];
+    self.scrollView.delegate = self;
     self.imageView = [[UIImageView alloc] init];
     
-    // Creat a UIImageVieew
-    [self.imageView setImage:self.image];
-    [self.imageView sizeToFit]; //resize imageView to full size of image
+    // Add an image to the image view.
+    [self.imageView setImage:[UIImage imageNamed:@"matterhorn"]];
+
+    // Add the scroll view to our view.
+    [self.view addSubview:self.scrollView];
     
-    // Config
+    // Add the image view to the scroll view.
     [self.scrollView addSubview:self.imageView];
-    self.scrollView.delegate=self;
+    
+    // Sizing
+    [self.imageView sizeToFit]; //resize imageView to full size of image
+    self.scrollView.contentSize = self.image.size;
+    
+    // Set the translatesAutoresizingMaskIntoConstraints to NO so that the views autoresizing mask is not translated into auto layout constraints.
+    self.scrollView.translatesAutoresizingMaskIntoConstraints  = NO;
+    self.imageView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    // Set the constraints for the scroll view and the image view.
+    NSDictionary *viewsDictionary = @{ @"scrollView": self.scrollView, @"imageView": self.imageView };
+    [self.self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[scrollView]|" options:0 metrics: 0 views:viewsDictionary]];
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[scrollView]|" options:0 metrics: 0 views:viewsDictionary]];
+    [self.scrollView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[imageView]|" options:0 metrics: 0 views:viewsDictionary]];
+    [self.scrollView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[imageView]|" options:0 metrics: 0 views:viewsDictionary]];
+    
     // if you set zoom you must implement delegate method viewForZoomingInScrollView
-    self.scrollView.maximumZoomScale = (self.scrollView.frame.size.height / self.imageView.frame.size.height) * 4;
-    self.scrollView.minimumZoomScale = self.scrollView.frame.size.height / self.imageView.frame.size.height;
     self.scrollView.bouncesZoom = NO; // Enabling this allows us to go beyond bounds (bad)
     self.scrollView.bounces = NO; // Enabling this allows us to go beyond bounds (bad)
     
@@ -39,43 +55,54 @@
     self.scrollView.showsVerticalScrollIndicator = YES;
     
 
-    self.scrollView.contentSize=self.image ? self.image.size: CGSizeZero;   //in case no image      //resize contentSize to imageSize
-    NSLog(@"scrollView contentSize= %.0f x %.0f",self.scrollView.contentSize.height,self.scrollView.contentSize.width);
-    //  fit whole picture on screen
-    
-    CGFloat imageViewHeight = self.imageView.bounds.size.height;
-    CGFloat imageViewWidth = self.imageView.bounds.size.width;
-    NSLog(@"imageView bounds:CGRect(%.0f, %.0f, %.0f x %.0f)", self.imageView.bounds.origin.x, self.imageView.bounds.origin.y, imageViewHeight, imageViewWidth);
-    
+}
 
+- (void)viewDidAppear:(BOOL)animated
+{
+    [self updateScrollSize];
+    [self updateViewPort];
+}
+
+- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+    // We update the scroll factor
+    [self updateScrollSize];
+//    [self updateViewPort]; // This centers things somewhat, but also wipes out our old zoom.
+}
+
+#pragma mark - view zooming and calculation
+
+- (void)updateViewPort
+{
     CGFloat x, y, height, width;
-    
-    if (YES)
+    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+    if (orientation == UIInterfaceOrientationLandscapeLeft || orientation == UIInterfaceOrientationLandscapeRight)
+    {
+        x = (self.imageView.bounds.size.width/2) - (self.view.bounds.size.width/2); // center the image horizontally in scrollview
+        y = 0;
+        height = self.view.bounds.size.width;
+        width = self.imageView.bounds.size.width;
+    }
+    else // Portrait mode
     {
         x = (self.imageView.bounds.size.width/2) - (self.view.bounds.size.width/2); // center the image horizontally in scrollview
         y = 0;
         height = self.view.bounds.size.height;
         width = self.imageView.bounds.size.height;
     }
-    else
-    {
-        // In theory, I would use this for auto-layout
-    }
-    [self.scrollView zoomToRect:CGRectMake(x, y, height, width) animated:YES];
     
-    // And add the ScrollView to our view
-    [self.view addSubview:self.scrollView];
+    [self.scrollView zoomToRect:CGRectMake(x, y, height, width) animated:YES];
 }
 
--(void)updateViewConstraints {
-        NSLog(@"updateViewConstraints");
-    [super updateViewConstraints];
-    if (self.view.bounds.size.height < self.view.bounds.size.width) {
-//        self.heightCon.constant = self.view.bounds.size.height;
-    }else{
-//        self.heightCon.constant = 350;
-    }
+- (void)updateScrollSize
+{
+    // This handles the scrolled out to the max being the height of the screen
+    CGFloat scrollFactor = (float)self.view.bounds.size.height / (float)self.imageView.bounds.size.height;
+    self.scrollView.maximumZoomScale = scrollFactor * 3;
+    self.scrollView.minimumZoomScale = scrollFactor;
 }
+
+#pragma mark - stuff that doesn't matter
 
 - (void)didReceiveMemoryWarning
 {
