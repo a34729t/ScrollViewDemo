@@ -57,6 +57,9 @@
 
 }
 
+CGFloat centerX = 0;
+CGFloat centerY = 0;
+
 - (void)viewDidAppear:(BOOL)animated
 {
     [self updateScrollSize];
@@ -67,7 +70,8 @@
 {
     // We update the scroll factor
     [self updateScrollSize];
-//    [self updateViewPort]; // This centers things somewhat, but also wipes out our old zoom.
+//    [self.scrollView setCenter:CGPointMake(CGFloat x, <#CGFloat y#>)] // Attempt 2: We could just update the center of the image and adjust zoom?
+//    [self updateViewPort]; // Attempt 1: This centers things somewhat, but also wipes out our old zoom.
 }
 
 #pragma mark - view zooming and calculation
