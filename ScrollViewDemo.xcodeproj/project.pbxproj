@@ -22,6 +22,7 @@
 		26F5E47B18CD198F000ED85C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 26F5E45A18CD198E000ED85C /* UIKit.framework */; };
 		26F5E48318CD198F000ED85C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 26F5E48118CD198F000ED85C /* InfoPlist.strings */; };
 		26F5E48518CD198F000ED85C /* ScrollViewDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 26F5E48418CD198F000ED85C /* ScrollViewDemoTests.m */; };
+		F9DAAEFD18D521740016E26F /* UIScrollView+ext.m in Sources */ = {isa = PBXBuildFile; fileRef = F9DAAEFC18D521740016E26F /* UIScrollView+ext.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,8 @@
 		26F5E48018CD198F000ED85C /* ScrollViewDemoTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ScrollViewDemoTests-Info.plist"; sourceTree = "<group>"; };
 		26F5E48218CD198F000ED85C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		26F5E48418CD198F000ED85C /* ScrollViewDemoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ScrollViewDemoTests.m; sourceTree = "<group>"; };
+		F9DAAEFB18D521740016E26F /* UIScrollView+ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIScrollView+ext.h"; sourceTree = "<group>"; };
+		F9DAAEFC18D521740016E26F /* UIScrollView+ext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIScrollView+ext.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +123,8 @@
 				26F5E46B18CD198E000ED85C /* Main_iPad.storyboard */,
 				26F5E46E18CD198E000ED85C /* ViewController.h */,
 				26F5E46F18CD198E000ED85C /* ViewController.m */,
+				F9DAAEFB18D521740016E26F /* UIScrollView+ext.h */,
+				F9DAAEFC18D521740016E26F /* UIScrollView+ext.m */,
 				26F5E47118CD198E000ED85C /* Images.xcassets */,
 				26F5E45D18CD198E000ED85C /* Supporting Files */,
 			);
@@ -254,6 +259,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				26F5E47018CD198E000ED85C /* ViewController.m in Sources */,
+				F9DAAEFD18D521740016E26F /* UIScrollView+ext.m in Sources */,
 				26F5E46718CD198E000ED85C /* AppDelegate.m in Sources */,
 				26F5E46318CD198E000ED85C /* main.m in Sources */,
 			);
@@ -474,6 +480,7 @@
 				26F5E48A18CD198F000ED85C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		26F5E48B18CD198F000ED85C /* Build configuration list for PBXNativeTarget "ScrollViewDemoTests" */ = {
 			isa = XCConfigurationList;
@@ -482,6 +489,7 @@
 				26F5E48D18CD198F000ED85C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
