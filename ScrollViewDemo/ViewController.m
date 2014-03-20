@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import "UIScrollView+ext.h"
 
+
 @interface ViewController()
 // for recentering with zoom or orientation change- not really working yet
 @property(nonatomic)CGRect  onScreenFrame;
@@ -40,6 +41,7 @@
     twoFingerTapRecognizer.numberOfTouchesRequired = 2;
     [self.scrollView addGestureRecognizer:twoFingerTapRecognizer];
 }
+
 // some of things work if put in VWA but not in VDL
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -123,7 +125,7 @@
 //probably not needed once zoomToFit works, but still useful
 - (void)centerScrollViewContents {
     
-    NSLog(@"preCenter:   %@",[self listCoordinates]);
+//    NSLog(@"preCenter:   %@",[self listCoordinates]);
     
     CGSize scrollViewSize = self.scrollView.bounds.size;
     CGRect contentsFrame = self.imageView.frame;
@@ -147,7 +149,7 @@
     }
     self.imageView.frame=contentsFrame;
     [self updateOnScreenFrame];
-    NSLog(@"postCenter:  %@",[self listCoordinates]);
+//    NSLog(@"postCenter:  %@",[self listCoordinates]);
 }
 
 
@@ -170,15 +172,21 @@
 
 
 -(void)updateOnScreenFrame{
+    
+    //doesn't work when imageView is smaller than scrollView
     CGRect newFrame=CGRectMake(self.scrollView.contentOffset.x,
                                self.scrollView.contentOffset.y,
-                               self.imageView.frame.size.width,
-                               self.imageView.frame.size.height);
+                               self.scrollView.frame.size.width,
+                               self.scrollView.frame.size.height);
+    
     self.onScreenFrame=newFrame;
-    NSLog(@"updateOnScreenFrame [%.0f,%.0f,%.0f,%.0f](%.0f,%.0f)",self.onScreenFrame.origin.x,self.onScreenFrame.origin.y,
-                                                self.onScreenFrame.size.width,self.onScreenFrame.size.height,
-                                                self.onScreenFrame.origin.x +(self.onScreenFrame.size.width/2),
-                                                self.onScreenFrame.origin.y +(self.onScreenFrame.size.height/2));
+    NSLog(@"updateOnScreenFrame [%.0f,%.0f,%.0f,%.0f]c(%.0f,%.0f) CS[w: %.0f,h: %.0f] ZC %0.2f",
+                                            self.onScreenFrame.origin.x,self.onScreenFrame.origin.y,
+                                            self.onScreenFrame.size.width,self.onScreenFrame.size.height,
+                                            self.onScreenFrame.origin.x +(self.onScreenFrame.size.width/2),
+                                            self.onScreenFrame.origin.y +(self.onScreenFrame.size.height/2),
+                                            self.imageView.frame.size.width, self.imageView.frame.size.height,
+                                            self.scrollView.zoomScale);
 }
 
 
@@ -237,9 +245,13 @@
 
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration{
     
-    [self zoomToFit];
-    [self centerScrollViewContents];
-    
+//    [self zoomToFit];
+//    [self centerScrollViewContents];
+    [self.scrollView xDisplayContentInFrame:self.onScreenFrame];
+    if (self.imageView.frame.size.width<self.scrollView.frame.size.width && self.imageView.frame.size.height<self.scrollView.frame.size.height) {
+        [self zoomToFit];
+        [self centerScrollViewContents];
+    }
     
 
     //below line doesn't work if zoomScale!=1

@@ -9,6 +9,10 @@
 #import <UIKit/UIKit.h>
 
 @interface UIScrollView (ext)
+
+-(CGRect)xGetOnScreenFrame;
+-(void)xDisplayContentInFrame:(CGRect)contentFrame;
+-(void)xZoomViewToFill:(UIView*)contentView;
 - (void)zoomToPoint:(CGPoint)zoomPoint withScale: (CGFloat)scale animated: (BOOL)animated;
 
 @end
