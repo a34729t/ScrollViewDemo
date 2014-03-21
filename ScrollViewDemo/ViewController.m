@@ -11,9 +11,8 @@
 
 
 @interface ViewController()
-// for recentering with zoom or orientation change- not really working yet
-@property(nonatomic)CGRect  onScreenFrame;
-@property(nonatomic) double zoomScale;
+
+@property(nonatomic)CGRect  onScreenFrame;  //track frame of content that is on screen
 
 @end
 
@@ -42,153 +41,18 @@
     [self.scrollView addGestureRecognizer:twoFingerTapRecognizer];
 }
 
+
 // some of things work if put in VWA but not in VDL
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    // create minimum zoom so that entire photo can be seen
-    CGRect scrollViewFrame = self.scrollView.frame;
-    CGFloat scaleWidth = scrollViewFrame.size.width / self.scrollView.contentSize.width;
-    CGFloat scaleHeight = scrollViewFrame.size.height / self.scrollView.contentSize.height;
-    CGFloat minScale = MIN(scaleWidth, scaleHeight);
-    
-    self.scrollView.minimumZoomScale = minScale;
+    self.scrollView.minimumZoomScale = [self.scrollView xMinScaleToFit:self.imageView];
     self.scrollView.maximumZoomScale = 2.0f;
     
     // start with entire image on screen
-    self.scrollView.zoomScale = minScale;
-    [self updateOnScreenFrame];
-    //delegate will call [self centerScrollViewContents]
+    self.scrollView.zoomScale=self.scrollView.minimumZoomScale;
+    self.onScreenFrame=[self.scrollView xOnScreenFrame];
 }
-
-
-/*TODO: with orientaion change at present image is shrunk back to fit on screen
- it would need a different implemtation if on wanted to maintain zoomScale and keep same image center
-*/
-
-//zoom adjustment to fit entire image on screen in new orientation
--(void)zoomToFit{
-    CGSize scrollViewSize = self.scrollView.bounds.size;
-    CGRect contentsFrame = self.imageView.frame;
-    
-    double widthRatio=contentsFrame.size.width / scrollViewSize.width;
-    double heightRatio= contentsFrame.size.height/scrollViewSize.height;
-    NSLog(@"zoomToFit widthRatio: %.3f, heightRatio: %.3f",widthRatio,heightRatio);
-    double presentZoom=self.scrollView.zoomScale;
-    
-    //both are too small
-    if (widthRatio<1 && heightRatio<1) {
-         // width is smallest
-        if (widthRatio<heightRatio) {
-            self.scrollView.zoomScale= presentZoom * (1/widthRatio);
-            NSLog(@"zoomToFit TOO SMALL widthRatio smaller zoomScale=%.3f",self.scrollView.zoomScale);
-
-        //height is smallest
-        }else{
-            self.scrollView.zoomScale=presentZoom *(1/heightRatio);
-            NSLog(@"zoomToFit TOO SMALL widthRatio bigger zoomScale=%.3f",self.scrollView.zoomScale);
-
-        }
-    //both are too big
-    }else if (widthRatio>1 || heightRatio>1){
-        //width bigger
-        if (widthRatio>heightRatio ){
-            self.scrollView.zoomScale=presentZoom *(1/widthRatio);
-            NSLog(@"zoomToFit TOO BIG widthRatio bigger zoomScale=%.3f",self.scrollView.zoomScale);
-
-        //height bigger
-        }else{
-            self.scrollView.zoomScale=presentZoom *(1/heightRatio);
-            NSLog(@"zoomToFit TOO BIG widthRatio smaller zoomScale=%.3f",self.scrollView.zoomScale);
-
-        }
-    }
-    [self updateOnScreenFrame];
-
-}
-
-//Under Construction- doesn't do what I want
--(void)expandToFit{
-    CGRect scrollViewFrame = self.scrollView.frame;
-    CGFloat scaleWidth = scrollViewFrame.size.width / self.scrollView.contentSize.width;
-    CGFloat scaleHeight = scrollViewFrame.size.height / self.scrollView.contentSize.height;
-    CGFloat minScale = MIN(scaleWidth, scaleHeight);
-    
-    self.scrollView.zoomScale=minScale;
-}
-
-
-
-
-
-//position content in center of scrollView rather than upper left, IF content is smaller than scroll
-//probably not needed once zoomToFit works, but still useful
-- (void)centerScrollViewContents {
-    
-//    NSLog(@"preCenter:   %@",[self listCoordinates]);
-    
-    CGSize scrollViewSize = self.scrollView.bounds.size;
-    CGRect contentsFrame = self.imageView.frame;
-    
-    //if content width smaller than scroll width, move x origin half of difference
-    if (contentsFrame.size.width < scrollViewSize.width) {
-        contentsFrame.origin.x = (scrollViewSize.width - contentsFrame.size.width) / 2.0f;
-//    }else if (contentsFrame.size.width > scrollViewSize.width){
-//        contentsFrame.origin.x = (contentsFrame.size.width-scrollViewSize.width) / 2.0f;
-    }else{
-        contentsFrame.origin.x = 0.0f;
-    }
-//    NSLog(@"centerScrollViewContents hContent: %.0f hScroll: %.0f",contentsFrame.size.height,scrollViewSize.height);
-    //if content height smaller than scroll height, move y origin half of difference
-    if (contentsFrame.size.height < scrollViewSize.height) {
-        contentsFrame.origin.y = (scrollViewSize.height - contentsFrame.size.height) / 2.0f;
-//    }else if (contentsFrame.size.height > scrollViewSize.height){
-//        contentsFrame.origin.y=(contentsFrame.size.height-scrollViewSize.height);
-    }else{
-        contentsFrame.origin.y = 0.0f;
-    }
-    self.imageView.frame=contentsFrame;
-    [self updateOnScreenFrame];
-//    NSLog(@"postCenter:  %@",[self listCoordinates]);
-}
-
-
--(CGRect)getFrameOfViewOnScreen{
-    CGRect frameOnScreen;
-    //the frame on screen in scrollView Frame of Reference
-    // x and y will have been set to the scrollView
-    double x = self.onScreenFrame.origin.x;
-    double y = self.onScreenFrame.origin.y;
-    double w =self.onScreenFrame.size.width;
-    double h =self.onScreenFrame.size.height;
-    double xC= (x +w/2)/w;
-    double yC = (y + h/2)/h;
-    
-    frameOnScreen=CGRectMake(xC, yC, w, h);
-    NSLog(@"getFrameOfViewOnScreen [%.0f,%.0f,%.0f,%.0f]",xC,yC,w,h);
-    return frameOnScreen;
-}
-
-
-
--(void)updateOnScreenFrame{
-    
-    //doesn't work when imageView is smaller than scrollView
-    CGRect newFrame=CGRectMake(self.scrollView.contentOffset.x,
-                               self.scrollView.contentOffset.y,
-                               self.scrollView.frame.size.width,
-                               self.scrollView.frame.size.height);
-    
-    self.onScreenFrame=newFrame;
-    NSLog(@"updateOnScreenFrame [%.0f,%.0f,%.0f,%.0f]c(%.0f,%.0f) CS[w: %.0f,h: %.0f] ZC %0.2f",
-                                            self.onScreenFrame.origin.x,self.onScreenFrame.origin.y,
-                                            self.onScreenFrame.size.width,self.onScreenFrame.size.height,
-                                            self.onScreenFrame.origin.x +(self.onScreenFrame.size.width/2),
-                                            self.onScreenFrame.origin.y +(self.onScreenFrame.size.height/2),
-                                            self.imageView.frame.size.width, self.imageView.frame.size.height,
-                                            self.scrollView.zoomScale);
-}
-
 
 
 - (void)scrollViewDoubleTapped:(UITapGestureRecognizer*)recognizer {
@@ -211,7 +75,9 @@
     [self.scrollView zoomToRect:rectToZoomTo animated:YES];
     
     NSLog(@"doubleTap:  %@",[self listCoordinates]);
-    [self updateOnScreenFrame];
+//    [self updateOnScreenFrame];
+    self.onScreenFrame=[self.scrollView xOnScreenFrame];
+
 
 }
 
@@ -229,36 +95,34 @@
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
     // The scroll view has zoomed, so you need to re-center the contents
-    [self centerScrollViewContents];
+    [self.scrollView xCenterSmallView:self.imageView];
+    
 }
 
 -(void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView{
     NSLog(@"scrollViewDidEndScrollingAnimation");
-    [self updateOnScreenFrame];
+    
+    self.onScreenFrame=[self.scrollView xOnScreenFrame];
+    [self.scrollView xCenterSmallView:self.imageView];
+    
+    [self listCoordinates];
+
 }
 
 -(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
     NSLog(@"scrollViewDidEndDragging");
-    [self updateOnScreenFrame];
+    self.onScreenFrame=[self.scrollView xOnScreenFrame];
 }
 
 
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration{
     
-//    [self zoomToFit];
-//    [self centerScrollViewContents];
     [self.scrollView xDisplayContentInFrame:self.onScreenFrame];
-    if (self.imageView.frame.size.width<self.scrollView.frame.size.width && self.imageView.frame.size.height<self.scrollView.frame.size.height) {
-        [self zoomToFit];
-        [self centerScrollViewContents];
-    }
-    
-
-    //below line doesn't work if zoomScale!=1
-//    [self.scrollView zoomToPoint:self.centerPoint withScale:self.scrollView.zoomScale animated:YES];
-    
+    [self.scrollView xCenterSmallView:self.imageView];
 }
 
+
+//for debugging
 -(NSString*)listCoordinates{
     CGPoint centerInScroll=[self.imageView convertPoint:self.imageView.center toView:self.scrollView];
     
@@ -271,7 +135,6 @@
                              self.imageView.bounds.size.width,self.imageView.bounds.size.height,
                              self.imageView.center.x, self.imageView.center.y,
                              
-                             
                              self.imageView.frame.origin.x,self.imageView.frame.origin.y,
                              self.imageView.frame.size.width,self.imageView.frame.size.height,
                              
@@ -279,6 +142,150 @@
     
     return returnString;
 }
+
+// create minimum zoom so that entire photo can be seen
+//CGRect scrollViewFrame = self.scrollView.frame;
+//CGFloat scaleWidth = scrollViewFrame.size.width / self.scrollView.contentSize.width;
+//CGFloat scaleHeight = scrollViewFrame.size.height / self.scrollView.contentSize.height;
+//CGFloat minScale = MIN(scaleWidth, scaleHeight);
+//NSLog(@"minScale old %.2f, new %.2f",minScale,[self.scrollView xMinScaleToFit:self.imageView]);
+//self.scrollView.minimumZoomScale = minScale;
+
+
+
+
+
+////zoom adjustment to fit entire image on screen in new orientation
+//-(void)zoomToFit{
+//    CGSize scrollViewSize = self.scrollView.bounds.size;
+//    CGRect contentsFrame = self.imageView.frame;
+//    
+//    double widthRatio=contentsFrame.size.width / scrollViewSize.width;
+//    double heightRatio= contentsFrame.size.height/scrollViewSize.height;
+//    NSLog(@"zoomToFit widthRatio: %.3f, heightRatio: %.3f",widthRatio,heightRatio);
+//    double presentZoom=self.scrollView.zoomScale;
+//    
+//    //both are too small
+//    if (widthRatio<1 && heightRatio<1) {
+//        // width is smallest
+//        if (widthRatio<heightRatio) {
+//            self.scrollView.zoomScale= presentZoom * (1/widthRatio);
+//            NSLog(@"zoomToFit TOO SMALL widthRatio smaller zoomScale=%.3f",self.scrollView.zoomScale);
+//            
+//            //height is smallest
+//        }else{
+//            self.scrollView.zoomScale=presentZoom *(1/heightRatio);
+//            NSLog(@"zoomToFit TOO SMALL widthRatio bigger zoomScale=%.3f",self.scrollView.zoomScale);
+//            
+//        }
+//        //both are too big
+//    }else if (widthRatio>1 || heightRatio>1){
+//        //width bigger
+//        if (widthRatio>heightRatio ){
+//            self.scrollView.zoomScale=presentZoom *(1/widthRatio);
+//            NSLog(@"zoomToFit TOO BIG widthRatio bigger zoomScale=%.3f",self.scrollView.zoomScale);
+//            
+//            //height bigger
+//        }else{
+//            self.scrollView.zoomScale=presentZoom *(1/heightRatio);
+//            NSLog(@"zoomToFit TOO BIG widthRatio smaller zoomScale=%.3f",self.scrollView.zoomScale);
+//            
+//        }
+//    }
+//    //    [self updateOnScreenFrame];
+//    self.onScreenFrame=[self.scrollView xOnScreenFrame];
+//    
+//    
+//}
+
+
+////Under Construction- doesn't do what I want
+//-(void)expandToFit{
+//    CGRect scrollViewFrame = self.scrollView.frame;
+//    CGFloat scaleWidth = scrollViewFrame.size.width / self.scrollView.contentSize.width;
+//    CGFloat scaleHeight = scrollViewFrame.size.height / self.scrollView.contentSize.height;
+//    CGFloat minScale = MIN(scaleWidth, scaleHeight);
+//    
+//    self.scrollView.zoomScale=minScale;
+//}
+
+
+
+
+
+
+
+////position content in center of scrollView rather than upper left, IF content is smaller than scroll
+////probably not needed once zoomToFit works, but still useful
+//- (void)centerScrollViewContents {
+//
+////    NSLog(@"preCenter:   %@",[self listCoordinates]);
+//
+//    CGSize scrollViewSize = self.scrollView.bounds.size;
+//    CGRect contentsFrame = self.imageView.frame;
+//
+//    //if content width smaller than scroll width, move x origin half of difference
+//    if (contentsFrame.size.width < scrollViewSize.width) {
+//        contentsFrame.origin.x = (scrollViewSize.width - contentsFrame.size.width) / 2.0f;
+////    }else if (contentsFrame.size.width > scrollViewSize.width){
+////        contentsFrame.origin.x = (contentsFrame.size.width-scrollViewSize.width) / 2.0f;
+//    }else{
+//        contentsFrame.origin.x = 0.0f;
+//    }
+////    NSLog(@"centerScrollViewContents hContent: %.0f hScroll: %.0f",contentsFrame.size.height,scrollViewSize.height);
+//    //if content height smaller than scroll height, move y origin half of difference
+//    if (contentsFrame.size.height < scrollViewSize.height) {
+//        contentsFrame.origin.y = (scrollViewSize.height - contentsFrame.size.height) / 2.0f;
+////    }else if (contentsFrame.size.height > scrollViewSize.height){
+////        contentsFrame.origin.y=(contentsFrame.size.height-scrollViewSize.height);
+//    }else{
+//        contentsFrame.origin.y = 0.0f;
+//    }
+//    self.imageView.frame=contentsFrame;
+////    [self updateOnScreenFrame];
+//    self.onScreenFrame=[self.scrollView xOnScreenFrame];
+//
+////    NSLog(@"postCenter:  %@",[self listCoordinates]);
+//}
+//
+//
+//-(CGRect)getFrameOfViewOnScreen{
+//    CGRect frameOnScreen;
+//    //the frame on screen in scrollView Frame of Reference
+//    // x and y will have been set to the scrollView
+//    double x = self.onScreenFrame.origin.x;
+//    double y = self.onScreenFrame.origin.y;
+//    double w =self.onScreenFrame.size.width;
+//    double h =self.onScreenFrame.size.height;
+//    double xC= (x +w/2)/w;
+//    double yC = (y + h/2)/h;
+//
+//    frameOnScreen=CGRectMake(xC, yC, w, h);
+//    NSLog(@"getFrameOfViewOnScreen [%.0f,%.0f,%.0f,%.0f]",xC,yC,w,h);
+//    return frameOnScreen;
+//}
+
+
+//-(void)updateOnScreenFrame{
+//    
+//    //doesn't work when imageView is smaller than scrollView
+//    CGRect newFrame=CGRectMake(self.scrollView.contentOffset.x,
+//                               self.scrollView.contentOffset.y,
+//                               self.scrollView.frame.size.width,
+//                               self.scrollView.frame.size.height);
+//    
+//    self.onScreenFrame=newFrame;
+//    NSLog(@"updateOnScreenFrame [%.0f,%.0f,%.0f,%.0f]c(%.0f,%.0f) CS[w: %.0f,h: %.0f] ZC %0.2f",
+//          self.onScreenFrame.origin.x,self.onScreenFrame.origin.y,
+//          self.onScreenFrame.size.width,self.onScreenFrame.size.height,
+//          self.onScreenFrame.origin.x +(self.onScreenFrame.size.width/2),
+//          self.onScreenFrame.origin.y +(self.onScreenFrame.size.height/2),
+//          self.imageView.frame.size.width, self.imageView.frame.size.height,
+//          self.scrollView.zoomScale);
+//}
+
+
+
 
 //[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[imageView(width)]" options:0 metrics:@{@"width":@(self.imageViewPointer.image.size.width)} views:viewsDictionary]];
 

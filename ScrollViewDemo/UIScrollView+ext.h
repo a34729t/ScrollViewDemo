@@ -10,9 +10,18 @@
 
 @interface UIScrollView (ext)
 
--(CGRect)xGetOnScreenFrame;
--(void)xDisplayContentInFrame:(CGRect)contentFrame;
+-(CGFloat)xMinScaleToFit:(UIView*)viewToFit;
+
+-(CGRect)xOnScreenFrame;        //returns the frame of content currently on Screen in SV
+
+-(void)xDisplayContentInFrame:(CGRect)contentFrame; //centers the frame of content in SV
+
 -(void)xZoomViewToFill:(UIView*)contentView;
-- (void)zoomToPoint:(CGPoint)zoomPoint withScale: (CGFloat)scale animated: (BOOL)animated;
+
+//- (CGRect)xCenterSmallView:(UIView*)cView;
+- (void)xCenterSmallView:(UIView*)cView;
+
+
+//- (void)zoomToPoint:(CGPoint)zoomPoint withScale: (CGFloat)scale animated: (BOOL)animated;
 
 @end

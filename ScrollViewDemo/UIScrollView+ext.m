@@ -10,20 +10,33 @@
 
 @implementation UIScrollView (ext)
 
+// create minimum zoom so that entire photo can be seen
+
+-(CGFloat)xMinScaleToFit:(UIView*)viewToFit{
+    CGRect scrollViewFrame = self.frame;
+    CGFloat scaleWidth = scrollViewFrame.size.width / self.contentSize.width;
+    CGFloat scaleHeight = scrollViewFrame.size.height / self.contentSize.height;
+    CGFloat minScale = MIN(scaleWidth, scaleHeight);
+    return minScale;
+}
+
 
 // returns the frame of ContentView currently on screen, in scrollView frame of reference
--(CGRect)xGetOnScreenFrame{
+-(CGRect)xOnScreenFrame{
     //doesn't work when imageView is smaller than scrollView
     CGRect newFrame=CGRectMake(self.contentOffset.x,
                                self.contentOffset.y,
                                self.frame.size.width,
                                self.frame.size.height);
     
-    NSLog(@"updateOnScreenFrame [%.0f,%.0f,%.0f,%.0f]c(%.0f,%.0f)",newFrame.origin.x,newFrame.origin.y,
+    NSLog(@"xOnScreenFrame [%.0f,%.0f,%.0f,%.0f]c(%.0f,%.0f) ZC %0.2f",
+          newFrame.origin.x,newFrame.origin.y,
           newFrame.size.width,newFrame.size.height,
           newFrame.origin.x +(newFrame.size.width/2),
-          newFrame.origin.y +(newFrame.size.height/2));
-        return newFrame;
+          newFrame.origin.y +(newFrame.size.height/2),
+          self.zoomScale);
+
+    return newFrame;
 }
 
 // displays the segment of contentView at current zoomScale, with previous center pointcentered in scrollView
@@ -54,13 +67,32 @@
                 newCenterX,newCenterY);
     
     [self scrollRectToVisible:newFrame animated:YES];
-    if (newFrame.size.width<self.frame.size.width && newFrame.size.height<self.frame.size.height) {
-        //zoomToFill
-    }
-
 }
 
 
+- (void)xCenterSmallView:(UIView*)cView{
+    
+    CGSize scrollViewSize = self.bounds.size;
+    CGRect contentsFrame = cView.frame;
+    NSLog(@"xCenterSmallView svWH[%.0f,%.0f] cvWH[%.0f,%.0f]",scrollViewSize.width, scrollViewSize.height,contentsFrame.size.width,contentsFrame.size.height);
+    
+        //if content width smaller than scroll width, move x origin half of difference
+    if (contentsFrame.size.width < scrollViewSize.width) {
+        contentsFrame.origin.x = (scrollViewSize.width - contentsFrame.size.width) / 2.0f;
+    }else if (cView.frame.size.width<(contentsFrame.origin.x +scrollViewSize.width)){
+        contentsFrame.origin.x=contentsFrame.size.width-scrollViewSize.width;
+    }
+        //if content height smaller than scroll height, move y origin half of difference
+    if (contentsFrame.size.height < scrollViewSize.height) {
+        contentsFrame.origin.y = (scrollViewSize.height - contentsFrame.size.height) / 2.0f;
+//           contentsFrame.origin.y=(contentsFrame.size.height-scrollViewSize.height);
+    }else if(cView.frame.size.height<(contentsFrame.origin.x + scrollViewSize.height)){
+        contentsFrame.origin.y=contentsFrame.size.height-scrollViewSize.height;
+    }
+    
+    cView.frame=contentsFrame;
+    NSLog(@"contentview frame [%.0f,%.0f,%.0f,%.0f]",cView.frame.origin.x,cView.frame.origin.y,cView.frame.size.width,cView.frame.size.height);
+}
 
 
 
@@ -104,33 +136,33 @@
 }
 
 
-
--(void)zoomToPoint:(CGPoint)zoomPoint withScale: (CGFloat)scale animated: (BOOL)animated
-{
-    //Normalize current content size back to content scale of 1.0f
-    CGSize contentSize;
-    contentSize.width = (self.contentSize.width / self.zoomScale);
-    contentSize.height = (self.contentSize.height / self.zoomScale);
-    
-    //translate the zoom point to relative to the content rect
-    zoomPoint.x = (zoomPoint.x / self.bounds.size.width) * contentSize.width;
-    zoomPoint.y = (zoomPoint.y / self.bounds.size.height) * contentSize.height;
-    
-    //derive the size of the region to zoom to
-    CGSize zoomSize;
-    zoomSize.width = self.bounds.size.width / scale;
-    zoomSize.height = self.bounds.size.height / scale;
-    
-    //offset the zoom rect so the actual zoom point is in the middle of the rectangle
-    CGRect zoomRect;
-    zoomRect.origin.x = zoomPoint.x - zoomSize.width / 2.0f;
-    zoomRect.origin.y = zoomPoint.y - zoomSize.height / 2.0f;
-    zoomRect.size.width = zoomSize.width;
-    zoomRect.size.height = zoomSize.height;
-    
-    //apply the resize
-    [self zoomToRect: zoomRect animated: animated];
-}
+//doesn't work at all zoom scales
+//-(void)zoomToPoint:(CGPoint)zoomPoint withScale: (CGFloat)scale animated: (BOOL)animated
+//{
+//    //Normalize current content size back to content scale of 1.0f
+//    CGSize contentSize;
+//    contentSize.width = (self.contentSize.width / self.zoomScale);
+//    contentSize.height = (self.contentSize.height / self.zoomScale);
+//    
+//    //translate the zoom point to relative to the content rect
+//    zoomPoint.x = (zoomPoint.x / self.bounds.size.width) * contentSize.width;
+//    zoomPoint.y = (zoomPoint.y / self.bounds.size.height) * contentSize.height;
+//    
+//    //derive the size of the region to zoom to
+//    CGSize zoomSize;
+//    zoomSize.width = self.bounds.size.width / scale;
+//    zoomSize.height = self.bounds.size.height / scale;
+//    
+//    //offset the zoom rect so the actual zoom point is in the middle of the rectangle
+//    CGRect zoomRect;
+//    zoomRect.origin.x = zoomPoint.x - zoomSize.width / 2.0f;
+//    zoomRect.origin.y = zoomPoint.y - zoomSize.height / 2.0f;
+//    zoomRect.size.width = zoomSize.width;
+//    zoomRect.size.height = zoomSize.height;
+//    
+//    //apply the resize
+//    [self zoomToRect: zoomRect animated: animated];
+//}
 
 
 
