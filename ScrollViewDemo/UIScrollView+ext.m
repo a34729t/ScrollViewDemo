@@ -17,6 +17,31 @@
     CGFloat scaleWidth = scrollViewFrame.size.width / self.contentSize.width;
     CGFloat scaleHeight = scrollViewFrame.size.height / self.contentSize.height;
     CGFloat minScale = MIN(scaleWidth, scaleHeight);
+    
+    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+    if (orientation == UIInterfaceOrientationLandscapeLeft || orientation == UIInterfaceOrientationLandscapeRight)
+    {
+        if (self.contentSize.width > self.contentSize.height)
+        {
+            NSLog(@"Landscape Mode: Landscape Image");
+            minScale = scaleWidth;
+        } else {
+            NSLog(@"Landscape Mode: Portrait Image");
+            minScale = scaleHeight;
+        }
+    }
+    else // Portrait
+    {
+        if (self.contentSize.width > self.contentSize.height)
+        {
+            NSLog(@"Portrait Mode: Landscape Image");
+            minScale = scaleHeight;
+        } else {
+            NSLog(@"Portrait Mode: Portrait Image");
+            minScale = scaleWidth;
+        }
+    }
+    
     return minScale;
 }
 

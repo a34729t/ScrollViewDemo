@@ -49,9 +49,25 @@
     self.scrollView.minimumZoomScale = [self.scrollView xMinScaleToFit:self.imageView];
     self.scrollView.maximumZoomScale = 2.0f;
     
+
     // start with entire image on screen
     self.scrollView.zoomScale=self.scrollView.minimumZoomScale;
     self.onScreenFrame=[self.scrollView xOnScreenFrame];
+    
+    NSLog(@"imageView.center: %@", NSStringFromCGPoint(self.imageView.center));
+    
+    // Center image
+    NSLog(@"Centering image");
+    NSLog(@"self.imageView.bounds.size.width=%.0f", self.imageView.bounds.size.width);
+    NSLog(@"self.imageView.bounds.size.height=%.0f", self.imageView.bounds.size.height);
+    
+    
+    
+    
+    self.imageView.center = CGPointMake(self.imageView.bounds.size.width * 0.5, self.imageView.bounds.size.height * 0.5);
+    
+    
+    NSLog(@"imageView.center: %@", NSStringFromCGPoint(self.imageView.center));
 }
 
 
