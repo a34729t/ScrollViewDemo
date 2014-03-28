@@ -18,6 +18,7 @@
     CGFloat scaleHeight = scrollViewFrame.size.height / self.contentSize.height;
     CGFloat minScale = MIN(scaleWidth, scaleHeight);
     
+    
     UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
     if (orientation == UIInterfaceOrientationLandscapeLeft || orientation == UIInterfaceOrientationLandscapeRight)
     {
@@ -41,7 +42,7 @@
             minScale = scaleWidth;
         }
     }
-    
+     
     return minScale;
 }
 
